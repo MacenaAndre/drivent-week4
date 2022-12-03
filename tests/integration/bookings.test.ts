@@ -17,7 +17,7 @@ beforeEach(async () => {
 
 const server = supertest(app);
 
-describe("GET /tickets/types", () => {
+describe("GET /booking", () => {
   it("should respond with status 401 if no token is given", async () => {
     const response = await server.get("/booking");
 
@@ -68,7 +68,7 @@ describe("GET /tickets/types", () => {
       expect(response.body).toEqual({
         id: booking.id,
         Room: {
-          id: booking.roomId,
+          id: room.id,
           name: room.name,
           capacity: room.capacity,
           hotelId: room.hotelId,
@@ -79,3 +79,4 @@ describe("GET /tickets/types", () => {
     });
   });
 });
+
