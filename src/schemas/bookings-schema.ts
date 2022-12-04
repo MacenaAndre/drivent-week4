@@ -5,5 +5,5 @@ type BodyPostBooking = {
 }
 
 export const createBookingSchema = Joi.object<BodyPostBooking>({
-  roomId: Joi.number().greater(0).required(),
+  roomId: Joi.number().required(),
 });

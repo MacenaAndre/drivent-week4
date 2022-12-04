@@ -111,7 +111,7 @@ describe("POST /booking", () => {
       const token = await generateValidToken(user);
       await createTicketTypeRemote();
 
-      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`);
+      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: 1 });
 
       expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
@@ -121,7 +121,7 @@ describe("POST /booking", () => {
       const token = await generateValidToken(user);
       await createEnrollmentWithAddress(user);
     
-      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`);
+      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: 1 });
     
       expect(response.status).toBe(httpStatus.FORBIDDEN);
     });
@@ -133,7 +133,7 @@ describe("POST /booking", () => {
       const ticketType = await createTicketTypeWithHotel();
       await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
     
-      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`);
+      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: 1 });
     
       expect(response.status).toBe(httpStatus.FORBIDDEN);
     });
@@ -145,7 +145,7 @@ describe("POST /booking", () => {
       const ticketType = await createTicketTypeRemote();
       await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
     
-      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`);
+      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: 1 });
     
       expect(response.status).toBe(httpStatus.FORBIDDEN);
     });
@@ -244,27 +244,27 @@ describe("POST /booking", () => {
       expect(response.body).toEqual({
         bookingId: expect.any(Number)
       });
+    });
 
-      it("should insert a new booking in the database", async () => {
-        const user = await createUser();
-        const token = await generateValidToken(user);
-        const enrollment = await createEnrollmentWithAddress(user);
-        const ticketType = await createTicketTypeWithHotel();
-        const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-        await createPayment(ticket.id, ticketType.price);
-        const hotel = await createHotel();
-        await createRoomWithHotelId(hotel.id);
-  
-        const beforeCount = await prisma.booking.count();
-  
-        const body = { roomId: room.id };
-        await server.post("/booking").set("Authorization", `Bearer ${token}`).send(body);
-  
-        const afterCount = await prisma.booking.count();
-  
-        expect(beforeCount).toEqual(0);
-        expect(afterCount).toEqual(1);
-      });
+    it("should insert a new booking in the database", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+      const hotel = await createHotel();
+      const room = await createRoomWithHotelId(hotel.id);
+
+      const beforeCount = await prisma.booking.count();
+
+      const body = { roomId: room.id };
+      await server.post("/booking").set("Authorization", `Bearer ${token}`).send(body);
+
+      const afterCount = await prisma.booking.count();
+
+      expect(beforeCount).toEqual(0);
+      expect(afterCount).toEqual(1);
     });
   });
 });
