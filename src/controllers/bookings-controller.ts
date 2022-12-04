@@ -16,3 +16,4 @@ export async function getBooking(req: AuthenticatedRequest, res: Response) {
     return res.sendStatus(httpStatus.NO_CONTENT);
   }
 }
+
