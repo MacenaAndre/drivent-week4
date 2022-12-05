@@ -1,4 +1,4 @@
-import { forbiddenError, notFoundError } from "@/errors";
+import { badRequestError, forbiddenError, notFoundError } from "@/errors";
 import bookingsRepository from "@/repositories/booking-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
 import hotelRepository from "@/repositories/hotel-repository";
@@ -6,7 +6,7 @@ import ticketRepository from "@/repositories/ticket-repository";
 import { Booking } from "@prisma/client";
 
 async function listBooking(userId: number) {
-  const booking = await bookingsRepository.findBooking(userId);
+  const booking = await bookingsRepository.findBookingByUserId(userId);
   if (!booking) {
     throw notFoundError();
   }
@@ -40,12 +40,28 @@ async function validateAvailableRoom(roomId: number): Promise<void> {
 }
 
 async function insertBooking(roomId: number, userId: number): Promise<Booking> {
-  const booking = await bookingsRepository.findBooking(userId);
+  const booking = await bookingsRepository.findBookingByUserId(userId);
 
   if(booking) throw forbiddenError();
-  
+
   const newBooking = await bookingsRepository.createBooking(roomId, userId);
   return newBooking;
+}
+
+async function validateParamsPutRequest(bookingId: number, userId: number): Promise<void> {
+  if(!bookingId) throw badRequestError();
+  
+  const booking = await bookingsRepository.findBookingByBookingId(bookingId);
+
+  if(!booking ) throw notFoundError();
+
+  if(booking.userId !== userId) throw forbiddenError();
+}
+
+async function updateBooking(bookingId: number, roomId: number): Promise<Booking> {
+  const updatedBooking = await bookingsRepository.updateBookingbyId(bookingId, roomId);
+
+  return updatedBooking;
 }
 
 const bookingsService = {
@@ -53,6 +69,8 @@ const bookingsService = {
   validatePostRequest,
   validateAvailableRoom,
   insertBooking,
+  validateParamsPutRequest,
+  updateBooking,
 };
   
 export default bookingsService;

@@ -5,7 +5,7 @@ import { prisma } from "@/config";
 import httpStatus from "http-status";
 import * as jwt from "jsonwebtoken";
 import supertest from "supertest";
-import { createEnrollmentWithAddress, createUser, createTicket, createTicketTypeWithHotel, createPayment, createHotel, createRoomWithHotelId, createBooking, createTicketTypeRemote, createRoomWithOneCapacity } from "../factories";
+import { createEnrollmentWithAddress, createUser, createTicket, createTicketTypeWithHotel, createPayment, createHotel, createRoomWithHotelId, createBooking, createTicketTypeRemote, createRoomWithOneCapacity, getBookingById } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
 
 beforeAll(async () => {
@@ -346,8 +346,8 @@ describe("PUT /booking/:bookingId", () => {
       await createPayment(ticket.id, ticketType.price);
       const hotel = await createHotel();
       const room = await createRoomWithHotelId(hotel.id);
-      await createBooking(user.id, room.id);
-      const params = 0;
+      const booking = await createBooking(user.id, room.id);
+      const params = booking.id + 1;
 
       const response = await server
         .put(`/booking/${params}`)
@@ -485,6 +485,30 @@ describe("PUT /booking/:bookingId", () => {
       expect(response.body).toEqual({
         bookingId: booking.id,
       });
+    });
+
+    it("should update user booking in the database", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+      const hotel = await createHotel();
+      const room = await createRoomWithHotelId(hotel.id);
+      const otherRoom = await createRoomWithHotelId(hotel.id);
+      const booking = await createBooking(user.id, room.id);
+      const params = booking.id;
+
+      await server
+        .put(`/booking/${params}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({ roomId: otherRoom.id });
+
+      const updatedBooking = await getBookingById(booking.id);
+      
+      expect(booking.roomId).toEqual(room.id);
+      expect(updatedBooking.roomId).toEqual(otherRoom.id);
     });
   });
 });

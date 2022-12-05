@@ -39,3 +39,9 @@ export async function createBooking(userId: number, roomId: number) {
     }
   });
 }
+
+export async function getBookingById(bookingId: number) {
+  return prisma.booking.findUnique({
+    where: { id: bookingId },
+  });
+}
