@@ -40,6 +40,10 @@ async function validateAvailableRoom(roomId: number): Promise<void> {
 }
 
 async function insertBooking(roomId: number, userId: number): Promise<Booking> {
+  const booking = await bookingsRepository.findBooking(userId);
+
+  if(booking) throw forbiddenError();
+  
   const newBooking = await bookingsRepository.createBooking(roomId, userId);
   return newBooking;
 }
