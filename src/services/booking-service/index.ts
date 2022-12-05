@@ -21,11 +21,11 @@ async function listBooking(userId: number) {
 async function validatePostRequest(userId: number): Promise<void> {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
   if (!enrollment) {
-    throw notFoundError();
+    throw forbiddenError();
   }
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
   if (!ticket) {
-    throw notFoundError();
+    throw forbiddenError();
   }
 
   if(ticket.status !== "PAID" || !ticket.TicketType.includesHotel) {
