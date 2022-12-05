@@ -21,10 +21,14 @@ async function listBooking(userId: number) {
 async function validatePostRequest(userId: number): Promise<void> {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
   if (!enrollment) {
-    throw forbiddenError();
+    throw notFoundError();
   }
   const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
-  if (!ticket || ticket.status !== "PAID" || !ticket.TicketType.includesHotel) {
+  if (!ticket) {
+    throw notFoundError();
+  }
+
+  if(ticket.status !== "PAID" || !ticket.TicketType.includesHotel) {
     throw forbiddenError();
   }
 }
@@ -49,6 +53,8 @@ async function insertBooking(roomId: number, userId: number): Promise<Booking> {
 }
 
 async function validateParamsPutRequest(bookingId: number, userId: number): Promise<void> {
+  if(bookingId <= 0 ) throw notFoundError();
+
   if(!bookingId) throw badRequestError();
   
   const booking = await bookingsRepository.findBookingByBookingId(bookingId);
